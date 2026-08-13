@@ -1,0 +1,13 @@
+{
+  "name": "el-vestuario-futbol-europeo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Directorio interactivo de las cinco grandes ligas europeas",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "refresh:teams": "node work/fetch-data.mjs",
+    "refresh:enrichment": "node work/enrich-data.mjs",
+    "refresh:career": "node work/career-stats.mjs",
+    "refresh": "npm run refresh:teams && npm run refresh:enrichment && npm run refresh:career"
+  }
+}
