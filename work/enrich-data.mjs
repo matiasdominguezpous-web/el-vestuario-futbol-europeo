@@ -5,71 +5,97 @@ import { dirname, resolve } from 'node:path';
 const file = resolve(dirname(fileURLToPath(import.meta.url)), '../outputs/data.js');
 const raw = await readFile(file, 'utf8');
 const data = JSON.parse(raw.replace(/^window\.FOOTBALL_DATA=/, '').replace(/;\s*$/, ''));
+const previousPlayers = new Map(Object.values(data).flatMap(l => Object.values(l.rosters).flatMap(r => r.players)).filter(p => p.tmId).map(p => [p.tmId, p]));
 const competitions = {
   'eng.1': ['premier-league', 'GB1'], 'esp.1': ['laliga', 'ES1'],
   'ita.1': ['serie-a', 'IT1'], 'ger.1': ['bundesliga', 'L1'], 'fra.1': ['ligue-1', 'FR1'],
 };
+const aliases = {
+  Deportivo: 'deportivo-la-coruna',
+  'AC Milan': 'ac-mailand', 'AS Roma': 'as-rom', Atalanta: 'atalanta-bergamo', Bologna: 'fc-bologna', Cagliari: 'cagliari-calcio', Como: 'como-1907', Fiorentina: 'ac-florenz', Frosinone: 'frosinone-calcio', Genoa: 'genua-cfc', Internazionale: 'inter-mailand', Juventus: 'juventus-turin', Lazio: 'lazio-rom', Lecce: 'us-lecce', Monza: 'ac-monza', Napoli: 'ssc-neapel', Parma: 'parma-calcio-1913', Sassuolo: 'us-sassuolo', Torino: 'fc-turin', Udinese: 'udinese-calcio', Venezia: 'venezia-fc',
+  'FC Cologne': '1-fc-koln',
+  Nice: 'ogc-nizza', Strasbourg: 'rc-strassburg-alsace', Lyon: 'olympique-lyon', Marseille: 'olympique-marseille',
+};
 const ua = { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126 Safari/537.36' };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-async function text(url, tries = 3) {
+async function text(url, tries = 5) {
   for (let i = 0; i < tries; i++) {
-    try { const r = await fetch(url, { headers: ua }); if (r.ok) return r.text(); } catch {}
-    await sleep(300 * (i + 1));
+    try { const response = await fetch(url, { headers: ua }); if (response.ok) { const body = await response.text(); if (body.length > 1000) return body; } } catch {}
+    await sleep(350 * (i + 1));
   }
   return '';
 }
-const clean = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&amp;/g, 'and').replace(/\b(fc|cf|ac|afc|calcio|football|club)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const clean = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&amp;/g, 'and').replace(/\b(fc|cf|ac|afc|calcio|football|club)\b/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 const words = s => new Set(clean(s).split(' ').filter(Boolean));
 function similarity(a, b) {
   const A = words(a), B = words(b); let same = 0; A.forEach(w => { if (B.has(w)) same++; });
   return same / Math.max(A.size, B.size, 1) + (clean(a).includes(clean(b)) || clean(b).includes(clean(a)) ? .7 : 0);
 }
-function playersFrom(html) {
-  const out = []; const re = /href="\/([^"/]+)\/profil\/spieler\/(\d+)">\s*([^<]+?)\s*<\/a>[\s\S]*?<tr>\s*<td>\s*([^<]+?)\s*<\/td>[\s\S]*?href="[^"]*\/marktwertverlauf\/spieler\/\2">\s*([^<]+?)\s*<\/a>/g;
-  for (const m of html.matchAll(re)) out.push({ slug: m[1], tmId: m[2], name: m[3].trim(), exactPosition: m[4].trim(), marketValue: m[5].trim(), tmUrl: `https://www.transfermarkt.com/${m[1]}/profil/spieler/${m[2]}` });
-  return out;
+function decode(value) { return value.replace(/&amp;/g, '&').replace(/&#039;/g, "'").replace(/&quot;/g, '"').trim(); }
+function groupPosition(position) {
+  if (/goalkeeper/i.test(position)) return 'Goalkeeper';
+  if (/back|defender/i.test(position)) return 'Defender';
+  if (/midfield/i.test(position)) return 'Midfielder';
+  return 'Forward';
 }
-function compactStats(j) {
-  const result = { season: '', items: [] };
-  const wanted = new Set(['STRT', 'G', 'A', 'YC', 'CS', 'SV', 'GA']);
-  for (const category of j.categories || []) {
-    const row = category.statistics?.[0]; if (!row) continue;
-    result.season ||= row.season?.abbreviation || '';
-    category.labels.forEach((label, i) => { if (wanted.has(label)) result.items.push([label, row.stats[i] || '0']); });
+function playersFrom(html) {
+  const players = [];
+  for (const row of html.matchAll(/<tr class="(?:odd|even)">([\s\S]*?)(?=<tr class="(?:odd|even)">|<\/tbody>)/g)) {
+    const block = row[1];
+    const identity = block.match(/href="\/([^"/]+)\/profil\/spieler\/(\d+)">\s*([^<]+?)\s*<\/a>/);
+    const position = identity && block.slice(block.indexOf(identity[0]) + identity[0].length).match(/<tr>\s*<td>\s*([^<]+?)\s*<\/td>/);
+    if (!identity || !position) continue;
+    const tmId = identity[2], name = decode(identity[3]), exactPosition = decode(position[1]);
+    const jersey = decode(block.match(/<div class=rn_nummer>([^<]*)<\/div>/)?.[1] || '—') || '—';
+    const age = Number(block.match(/\((\d{1,2})\)<\/td>/)?.[1] || 0) || null;
+    const country = decode(block.match(/title="([^"]+)"[^>]*class="flaggenrahmen"/)?.[1] || '');
+    const photo = block.match(/data-src="([^"]*portrait[^"]+)"/)?.[1] || '';
+    const marketValue = decode(block.match(new RegExp(`href="[^"]*\\/marktwertverlauf\\/spieler\\/${tmId}">\\s*([^<]+)`))?.[1] || 'S/D');
+    const old = previousPlayers.get(tmId);
+    players.push({ tmId, slug: identity[1], name, position: groupPosition(exactPosition), exactPosition, marketValue, age, country, number: jersey, photo, tmUrl: `https://www.transfermarkt.com/${identity[1]}/profil/spieler/${tmId}`, titles: old?.titles || [], titlesLoaded: Boolean(old), stats: old?.stats || { career: true, items: [] } });
   }
-  return result;
+  return players;
+}
+function achievementsFrom(html) {
+  const unique = new Map();
+  for (const match of html.matchAll(/<h2>\s*(\d+)x\s+([^<]+?)\s*<\/h2>/g)) unique.set(decode(match[2]), { name: decode(match[2]), count: Number(match[1]) });
+  return [...unique.values()];
 }
 async function pool(items, size, worker) {
-  let cursor = 0; const runners = Array.from({ length: size }, async () => { while (cursor < items.length) { const i = cursor++; await worker(items[i], i); } }); await Promise.all(runners);
+  let cursor = 0;
+  await Promise.all(Array.from({ length: size }, async () => { while (cursor < items.length) { const index = cursor++; await worker(items[index], index); } }));
 }
 
-const matched = [];
-for (const [league, [slug, code]] of Object.entries(competitions)) {
-  const competition = await text(`https://www.transfermarkt.com/${slug}/startseite/wettbewerb/${code}`);
+const allPlayers = [];
+for (const [league, [competitionSlug, code]] of Object.entries(competitions)) {
+  const competition = await text(`https://www.transfermarkt.com/${competitionSlug}/startseite/wettbewerb/${code}`);
   const clubs = [...competition.matchAll(/href="\/([^"/]+)\/startseite\/verein\/(\d+)\/saison_id\/2026"/g)].map(m => ({ slug: m[1], id: m[2] })).filter((v, i, a) => a.findIndex(x => x.id === v.id) === i);
+  const claimed = new Set();
   for (const team of data[league].teams) {
-    const club = clubs.slice().sort((a, b) => similarity(team.displayName, b.slug) - similarity(team.displayName, a.slug))[0];
-    if (!club || similarity(team.displayName, club.slug) < .25) continue;
-    const squad = playersFrom(await text(`https://www.transfermarkt.com/${club.slug}/kader/verein/${club.id}/saison_id/2026/plus/1`));
-    const roster = data[league].rosters[team.id].players;
-    for (const player of roster) {
-      const candidate = squad.slice().sort((a, b) => similarity(player.name, b.name) - similarity(player.name, a.name))[0];
-      if (candidate && similarity(player.name, candidate.name) >= .62) { Object.assign(player, candidate); matched.push(player); }
-    }
-    console.log(league, team.displayName, squad.length, roster.filter(p => p.tmId).length);
+    const alias = aliases[team.displayName];
+    const available = clubs.filter(c => !claimed.has(c.id));
+    const club = alias ? available.find(c => c.slug === alias) : available.sort((a, b) => similarity(team.displayName, b.slug) - similarity(team.displayName, a.slug))[0];
+    if (!club) { console.warn('No Transfermarkt club match:', league, team.displayName); continue; }
+    claimed.add(club.id); team.tmId = club.id; team.tmSlug = club.slug;
+    const [squadPage, achievementsPage] = await Promise.all([
+      text(`https://www.transfermarkt.com/${club.slug}/kader/verein/${club.id}/saison_id/2026/plus/1`),
+      text(`https://www.transfermarkt.com/${club.slug}/erfolge/verein/${club.id}`),
+    ]);
+    const squad = playersFrom(squadPage);
+    team.titles = achievementsFrom(achievementsPage);
+    data[league].rosters[team.id] = { season: '2026–27 · Transfermarkt', players: squad };
+    allPlayers.push(...squad);
+    console.log(league, team.displayName, squad.length, 'players,', team.titles.length, 'honours');
   }
 }
 
-console.log('Enriching details for', matched.length, 'matched players');
-await pool(matched, 16, async (player, i) => {
-  const [achievements, statsResponse] = await Promise.all([
-    text(`https://www.transfermarkt.com/${player.slug}/erfolge/spieler/${player.tmId}`, 2),
-    fetch(`https://site.web.api.espn.com/apis/common/v3/sports/soccer/athletes/${player.id}/stats?region=us&lang=en&contentorigin=espn`).then(r => r.ok ? r.json() : {}).catch(() => ({})),
-  ]);
-  player.titles = [...achievements.matchAll(/title="([^"]+)"[^>]*class="data-header__success-data"[\s\S]*?data-header__success-number">(\d+)</g)].map(m => ({ name: m[1], count: Number(m[2]) }));
-  player.stats = compactStats(statsResponse);
-  if (i % 100 === 0) console.log('details', i, '/', matched.length);
+const playersWithoutTitles = allPlayers.filter(player => !player.titlesLoaded);
+console.log('Fetching player honours for', playersWithoutTitles.length, 'players');
+await pool(playersWithoutTitles, 16, async (player, index) => {
+  player.titles = achievementsFrom(await text(`https://www.transfermarkt.com/${player.slug}/erfolge/spieler/${player.tmId}`, 3));
+  player.titlesLoaded = true;
+  if (index % 100 === 0) console.log('honours', index, '/', playersWithoutTitles.length);
 });
 
 await writeFile(file, `window.FOOTBALL_DATA=${JSON.stringify(data)};\n`);
-console.log('done');
+console.log('Transfermarkt enrichment complete:', allPlayers.length, 'players');

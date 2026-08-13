@@ -8,7 +8,7 @@ Directorio interactivo de los equipos y jugadores de las cinco grandes ligas eur
 - Bundesliga
 - Ligue 1
 
-La aplicación incluye plantillas, edad, nacionalidad, posición específica, valor de mercado, estadísticas acumuladas de carrera y títulos de cada jugador.
+La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera y palmarés de jugadores y clubes.
 
 ## Uso local
 
@@ -44,7 +44,7 @@ node work/enrich-data.mjs
 node work/career-stats.mjs
 ```
 
-Ejecuta los scripts en ese orden. Los valores, posiciones, palmarés y estadísticas provienen de datos públicos de Transfermarkt; equipos y plantillas se cruzan con ESPN.
+Ejecuta los scripts en ese orden. Dorsales, edades, nacionalidades, posiciones, valores, estadísticas y palmarés de jugadores y clubes provienen de datos públicos de Transfermarkt. ESPN se utiliza únicamente como referencia inicial para el listado de competiciones y equipos antes del cruce con Transfermarkt.
 
 ## Tecnologías
 

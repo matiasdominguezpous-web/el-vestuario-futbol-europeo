@@ -6,7 +6,7 @@ const file = resolve(dirname(fileURLToPath(import.meta.url)), '../outputs/data.j
 const raw = await readFile(file, 'utf8');
 const data = JSON.parse(raw.replace(/^window\.FOOTBALL_DATA=/, '').replace(/;\s*$/, ''));
 const players = Object.values(data).flatMap(league => Object.values(league.rosters).flatMap(roster => roster.players));
-const targets = players.filter(player => player.tmId);
+const targets = players.filter(player => player.tmId && !player.stats?.items?.length);
 
 async function pool(items, size, worker) {
   let cursor = 0;
