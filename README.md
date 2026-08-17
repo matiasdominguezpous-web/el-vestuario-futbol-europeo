@@ -1,12 +1,17 @@
 # El Vestuario — Fútbol Europeo
 
-Directorio interactivo de los equipos y jugadores de las cinco grandes ligas europeas:
+Directorio interactivo de los equipos y jugadores de diez grandes ligas europeas:
 
 - Premier League
 - LaLiga
 - Serie A
 - Bundesliga
 - Ligue 1
+- Liga Portugal
+- Eredivisie
+- Belgian Pro League
+- Süper Lig
+- Scottish Premiership
 
 La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera y palmarés de jugadores y clubes.
 

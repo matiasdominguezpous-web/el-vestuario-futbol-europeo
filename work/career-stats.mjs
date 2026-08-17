@@ -6,6 +6,8 @@ const file = resolve(dirname(fileURLToPath(import.meta.url)), '../outputs/data.j
 const raw = await readFile(file, 'utf8');
 const data = JSON.parse(raw.replace(/^window\.FOOTBALL_DATA=/, '').replace(/;\s*$/, ''));
 const players = Object.values(data).flatMap(league => Object.values(league.rosters).flatMap(roster => roster.players));
+const numeric = value => Number.isFinite(Number(value)) ? Number(value) : 0;
+for (const player of players) if (player.stats?.items) player.stats.items = player.stats.items.map(([key, value]) => [key, numeric(value)]);
 const targets = players.filter(player => player.tmId && !player.stats?.items?.length);
 
 async function pool(items, size, worker) {
@@ -35,11 +37,11 @@ await pool(targets, 18, async (player, index) => {
     if (general.participationState !== 'played') continue;
     totals.APPS++;
     if (stats.playingTimeStatistics?.isStarting) totals.STRT++;
-    totals.MIN += Number(stats.playingTimeStatistics?.playedMinutes || 0);
-    totals.G += Number(stats.goalStatistics?.goalsScoredTotalOfficial || 0);
-    totals.A += Number(stats.goalStatistics?.assistsOfficial || 0);
-    totals.YC += Number(stats.cardStatistics?.yellowCardGross || 0);
-    totals.RC += Number(stats.cardStatistics?.redCards || stats.cardStatistics?.redCard || 0);
+    totals.MIN += numeric(stats.playingTimeStatistics?.playedMinutes);
+    totals.G += numeric(stats.goalStatistics?.goalsScoredTotalOfficial);
+    totals.A += numeric(stats.goalStatistics?.assistsOfficial);
+    totals.YC += numeric(stats.cardStatistics?.yellowCardGross);
+    totals.RC += numeric(stats.cardStatistics?.redCards ?? stats.cardStatistics?.redCard);
   }
   player.stats = { career: true, items: Object.entries(totals) };
   if (index % 100 === 0) console.log(index, '/', targets.length);

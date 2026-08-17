@@ -4,7 +4,7 @@ import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const leagues = ['eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1'];
+const leagues = ['eng.1', 'esp.1', 'ita.1', 'ger.1', 'fra.1', 'por.1', 'ned.1', 'bel.1', 'tur.1', 'sco.1'];
 const base = 'https://site.api.espn.com/apis/site/v2/sports/soccer';
 const data = {};
 
