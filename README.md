@@ -34,8 +34,9 @@ Después visita `http://localhost:8080`.
 │   ├── futbol-europeo.html        # Aplicación completa
 │   └── data.js                    # Base de datos integrada
 └── work/
-    ├── fetch-data.mjs             # Descarga equipos y plantillas
-    ├── enrich-data.mjs            # Añade valores, posiciones y títulos
+    ├── fetch-data.mjs             # Descarga la lista base de equipos
+    ├── enrich-data.mjs            # Valida planteles y añade datos Transfermarkt
+    ├── club-titles.mjs            # Permite refrescar palmarés de clubes
     └── career-stats.mjs           # Calcula estadísticas de carrera
 ```
 
@@ -50,6 +51,8 @@ node work/career-stats.mjs
 ```
 
 Ejecuta los scripts en ese orden. Dorsales, edades, nacionalidades, posiciones, valores, estadísticas y palmarés de jugadores y clubes provienen de datos públicos de Transfermarkt. ESPN se utiliza únicamente como referencia inicial para el listado de competiciones y equipos antes del cruce con Transfermarkt.
+
+`enrich-data.mjs` contrasta cada club con el identificador actual de Transfermarkt y comprueba que todos los integrantes del plantel tengan un perfil válido antes de guardar los datos.
 
 ## Tecnologías
 

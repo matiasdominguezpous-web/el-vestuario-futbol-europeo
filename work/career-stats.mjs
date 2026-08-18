@@ -7,7 +7,10 @@ const raw = await readFile(file, 'utf8');
 const data = JSON.parse(raw.replace(/^window\.FOOTBALL_DATA=/, '').replace(/;\s*$/, ''));
 const players = Object.values(data).flatMap(league => Object.values(league.rosters).flatMap(roster => roster.players));
 const numeric = value => Number.isFinite(Number(value)) ? Number(value) : 0;
-for (const player of players) if (player.stats?.items) player.stats.items = player.stats.items.map(([key, value]) => [key, numeric(value)]);
+for (const player of players) {
+  if (player.stats?.items) player.stats.items = player.stats.items.map(([key, value]) => [key, numeric(value)]);
+  if (/^[€$£]0(?:\.0+)?$/.test(player.marketValue || '')) player.marketValue = 'S/D';
+}
 const targets = players.filter(player => player.tmId && !player.stats?.items?.length);
 
 async function pool(items, size, worker) {

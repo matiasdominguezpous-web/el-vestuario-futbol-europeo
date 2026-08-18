@@ -7,6 +7,7 @@
     "serve": "python3 -m http.server 8080",
     "refresh:teams": "node work/fetch-data.mjs",
     "refresh:enrichment": "node work/enrich-data.mjs",
+    "refresh:club-titles": "node work/club-titles.mjs",
     "refresh:career": "node work/career-stats.mjs",
     "refresh": "npm run refresh:teams && npm run refresh:enrichment && npm run refresh:career"
   }
