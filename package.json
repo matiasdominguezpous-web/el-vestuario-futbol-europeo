@@ -9,6 +9,7 @@
     "refresh:enrichment": "node work/enrich-data.mjs",
     "refresh:club-titles": "node work/club-titles.mjs",
     "refresh:career": "node work/career-stats.mjs",
-    "refresh": "npm run refresh:teams && npm run refresh:enrichment && npm run refresh:career"
+    "refresh:standings": "node work/fetch-standings.mjs",
+    "refresh": "npm run refresh:teams && npm run refresh:enrichment && npm run refresh:career && npm run refresh:standings"
   }
 }

@@ -13,7 +13,7 @@ Directorio interactivo de los equipos y jugadores de diez grandes ligas europeas
 - Süper Lig
 - Scottish Premiership
 
-La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera y palmarés de jugadores y clubes.
+La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera, palmarés de jugadores y clubes, y las tablas actuales de las diez ligas.
 
 ## Uso local
 
@@ -31,13 +31,16 @@ Después visita `http://localhost:8080`.
 .
 ├── index.html                     # Entrada para hosting estático
 ├── outputs/
-│   ├── futbol-europeo.html        # Aplicación completa
-│   └── data.js                    # Base de datos integrada
+│   ├── futbol-europeo.html        # Página de plantillas
+│   ├── posiciones.html            # Página de clasificaciones
+│   ├── data.js                    # Base de datos de plantillas
+│   └── standings-data.js          # Base de datos de posiciones
 └── work/
     ├── fetch-data.mjs             # Descarga la lista base de equipos
     ├── enrich-data.mjs            # Valida planteles y añade datos Transfermarkt
     ├── club-titles.mjs            # Permite refrescar palmarés de clubes
-    └── career-stats.mjs           # Calcula estadísticas de carrera
+    ├── career-stats.mjs           # Calcula estadísticas de carrera
+    └── fetch-standings.mjs        # Actualiza las clasificaciones
 ```
 
 ## Actualización de datos
@@ -48,6 +51,7 @@ Los scripts requieren Node.js 20 o posterior:
 node work/fetch-data.mjs
 node work/enrich-data.mjs
 node work/career-stats.mjs
+node work/fetch-standings.mjs
 ```
 
 Ejecuta los scripts en ese orden. Dorsales, edades, nacionalidades, posiciones, valores, estadísticas y palmarés de jugadores y clubes provienen de datos públicos de Transfermarkt. ESPN se utiliza únicamente como referencia inicial para el listado de competiciones y equipos antes del cruce con Transfermarkt.

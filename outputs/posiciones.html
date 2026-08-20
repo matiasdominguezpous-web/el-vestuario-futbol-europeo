@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Consulta las posiciones actuales de diez grandes ligas europeas.">
+  <title>Posiciones | El Vestuario</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#f3f4ed;--muted:#9aa09a;--bg:#0b0d0c;--panel:#121513;--line:#272c28;--green:#c8ff47;--orange:#ff6d3a;--radius:22px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif;min-height:100vh}button{font:inherit;color:inherit}.shell{max-width:1240px;margin:auto;padding:0 32px}.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:12px;font-family:"Syne",sans-serif;font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--ink);text-decoration:none}.mark{width:34px;height:34px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#10120d;font-size:17px}.header-actions,.site-nav{display:flex;align-items:center}.header-actions{gap:24px}.site-nav{gap:5px;padding:4px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}.site-nav a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:700;padding:8px 13px;border-radius:999px}.site-nav a:hover{color:var(--ink)}.site-nav a.active{background:var(--green);color:#11150b}.live{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px #c8ff4718}
+    .hero{padding:38px 0 34px;display:flex;align-items:end;justify-content:space-between;gap:24px}.hero h1{font-family:"Syne";font-size:clamp(34px,5vw,58px);line-height:.95;letter-spacing:-3px;margin:0}.hero h1 span{color:var(--green)}.counts{display:flex;gap:28px}.count strong{font-family:"Syne";font-size:25px}.count span{display:block;color:var(--muted);font-size:10px;margin-top:3px;text-transform:uppercase;letter-spacing:1px}
+    .toolbar{position:sticky;top:0;z-index:10;background:#0b0d0cf2;backdrop-filter:blur(16px);padding:18px 0;border-bottom:1px solid var(--line);border-top:1px solid var(--line)}.league-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}.league-tabs::-webkit-scrollbar{display:none}.tab{border:1px solid var(--line);background:transparent;padding:11px 16px;border-radius:999px;cursor:pointer;white-space:nowrap;transition:.2s}.tab:hover{border-color:#5b635d}.tab.active{background:var(--green);color:#11150b;border-color:var(--green);font-weight:700}
+    .content{padding:34px 0 80px}.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}.section-head h2{font-family:"Syne";font-size:29px;margin:0;letter-spacing:-1px}.season{color:var(--muted);font-size:12px}.table-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}.table-scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:800px}thead{background:#0f1210}th{padding:13px 14px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;text-align:center;font-weight:700;border-bottom:1px solid var(--line)}th.club-col{text-align:left}td{height:64px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:13px;text-align:center}tbody tr:last-child td{border-bottom:0}tbody tr{position:relative;transition:.15s}tbody tr:hover{background:#181c19}.position-cell{width:74px;padding-left:18px}.rank{font-family:"Syne";font-size:17px;font-weight:700}.movement{font-size:9px;margin-left:5px}.movement.up{color:var(--green)}.movement.down{color:var(--orange)}.movement.same{color:#59615b}.club-cell{text-align:left;min-width:260px}.club{display:flex;align-items:center;gap:13px}.club img{width:36px;height:36px;object-fit:contain}.club b{font-size:14px}.zone-line{position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--zone,transparent)}.points{font-family:"Syne";font-size:17px;color:var(--green);font-weight:700}.difference.positive{color:var(--green)}.difference.negative{color:#ff9b78}.deduction{display:block;color:var(--orange);font-size:9px;margin-top:2px}.table-footer{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid var(--line);padding:16px 18px;color:var(--muted);font-size:11px}.legend{display:flex;gap:14px;flex-wrap:wrap}.legend-item{display:flex;align-items:center;gap:6px}.legend-dot{width:7px;height:7px;border-radius:50%;background:var(--color)}.updated{text-align:right;white-space:nowrap}.loader{display:flex;justify-content:center;padding:90px}.loader:after{content:"";width:28px;height:28px;border:2px solid var(--line);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.error{border:1px solid #6f3828;background:#20130f;color:#ffb399;border-radius:16px;padding:18px}.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
+    @media(max-width:780px){.shell{padding:0 18px}.topbar{height:70px}.header-actions{gap:10px}.live{display:none}.hero{align-items:flex-start;flex-direction:column;padding:32px 0 28px}.counts{gap:20px}.toolbar{padding:12px 0}.content{padding-top:24px}.section-head h2{font-size:24px}.table-card{border-radius:16px}.table-footer{align-items:flex-start;flex-direction:column}.updated{text-align:left}.footer{gap:10px;flex-direction:column}}
+    @media(max-width:480px){.site-nav a{padding:7px 10px}.brand{font-size:0}.brand .mark{font-size:17px}.counts .count:last-child{display:none}.hero h1{font-size:40px;letter-spacing:-2px}}
+  </style>
+</head>
+<body>
+  <header class="shell topbar"><a class="brand" href="futbol-europeo.html"><span class="mark">V</span>EL VESTUARIO</a><div class="header-actions"><nav class="site-nav" aria-label="Secciones"><a href="futbol-europeo.html">Plantillas</a><a class="active" href="posiciones.html">Posiciones</a></nav><div class="live"><span class="dot"></span><span>Clasificación actual</span></div></div></header>
+  <main>
+    <section class="shell hero"><h1>Posiciones<br><span>actuales.</span></h1><div class="counts"><div class="count"><strong>10</strong><span>Ligas</span></div><div class="count"><strong id="teamCount">180</strong><span>Equipos</span></div><div class="count"><strong id="seasonCount">26/27</strong><span>Temporada</span></div></div></section>
+    <div class="toolbar"><div class="shell"><div class="league-tabs" id="tabs"></div></div></div>
+    <section class="shell content"><div class="section-head"><h2 id="leagueName">Posiciones</h2><span class="season" id="season"></span></div><div id="standings"><div class="loader"></div></div></section>
+  </main>
+  <footer class="shell footer"><span>EL VESTUARIO © 2026</span><span>Clasificaciones: Transfermarkt</span></footer>
+  <script src="standings-data.js"></script>
+  <script>
+    const state={league:'eng.1'};
+    const $=selector=>document.querySelector(selector);
+    const esc=value=>String(value??'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+    const zoneTranslations={
+      'Champions League':'Champions League','Europa League':'Europa League','Conference League':'Conference League',
+      'Champions & UEFA Champions League':'Campeón y Champions League','UEFA Champions League':'Champions League',
+      'UEFA Europa League':'Europa League','UEFA Europa Conference League':'Conference League','Relegated':'Descenso',
+      'Champions League qualification':'Clasificación a Champions','Europa League qualification':'Clasificación a Europa League',
+      'Conference League qualification':'Clasificación a Conference League','Relegation':'Descenso','Relegation play-offs':'Playoff de descenso',
+      'Promotion':'Ascenso','Promotion play-offs':'Playoff de ascenso'
+    };
+    const zoneName=value=>zoneTranslations[value]||value;
+    const difference=value=>value>0?`+${value}`:String(value);
+    const movement=row=>{const change=row.previousPosition-row.position;if(change>0)return '<span class="movement up" aria-label="Sube">▲</span>';if(change<0)return '<span class="movement down" aria-label="Baja">▼</span>';return '<span class="movement same" aria-label="Sin cambio">●</span>'};
+    function renderTabs(){const leagues=Object.values(window.STANDINGS_DATA?.leagues||{});$('#tabs').innerHTML=leagues.map(league=>`<button class="tab ${league.id===state.league?'active':''}" data-id="${esc(league.id)}">${league.flag} ${esc(league.name)}</button>`).join('')}
+    function renderStandings(){
+      const league=window.STANDINGS_DATA?.leagues?.[state.league];
+      if(!league){$('#standings').innerHTML='<div class="error">No pudimos cargar esta clasificación.</div>';return}
+      $('#leagueName').textContent=league.name;$('#season').textContent=`Temporada ${league.season}`;$('#seasonCount').textContent=league.season;
+      const rows=league.rows.map(row=>`<tr style="--zone:${esc(row.zoneColor||'transparent')}" title="${esc(zoneName(row.zone))}"><td class="position-cell"><span class="zone-line"></span><span class="rank">${row.position}</span>${movement(row)}</td><td class="club-cell"><span class="club"><img src="${esc(row.logo)}" alt="" loading="lazy"><b>${esc(row.name)}</b></span></td><td>${row.played}</td><td>${row.wins}</td><td>${row.draws}</td><td>${row.losses}</td><td>${row.goalsFor}</td><td>${row.goalsAgainst}</td><td class="difference ${row.goalDifference>0?'positive':row.goalDifference<0?'negative':''}">${difference(row.goalDifference)}</td><td class="points">${row.points}${row.pointsDeducted?`<small class="deduction">−${row.pointsDeducted}</small>`:''}</td></tr>`).join('');
+      const zones=[...new Map(league.rows.filter(row=>row.zone&&row.zoneColor).map(row=>[row.zone,{name:zoneName(row.zone),color:row.zoneColor}])).values()];
+      const legend=zones.map(zone=>`<span class="legend-item"><i class="legend-dot" style="--color:${esc(zone.color)}"></i>${esc(zone.name)}</span>`).join('');
+      const updated=new Intl.DateTimeFormat('es-MX',{dateStyle:'medium',timeStyle:'short'}).format(new Date(window.STANDINGS_DATA.updatedAt));
+      $('#standings').innerHTML=`<article class="table-card"><div class="table-scroll"><table><thead><tr><th>Pos.</th><th class="club-col">Club</th><th>PJ</th><th>G</th><th>E</th><th>P</th><th>GF</th><th>GC</th><th>DG</th><th>PTS</th></tr></thead><tbody>${rows}</tbody></table></div><div class="table-footer"><div class="legend">${legend}</div><span class="updated">Actualizado ${esc(updated)}</span></div></article>`;
+    }
+    $('#tabs').addEventListener('click',event=>{const button=event.target.closest('[data-id]');if(!button)return;state.league=button.dataset.id;renderTabs();renderStandings()});
+    const leagues=Object.values(window.STANDINGS_DATA?.leagues||{});$('#teamCount').textContent=leagues.reduce((total,league)=>total+league.rows.length,0);renderTabs();renderStandings();
+  </script>
+</body>
+</html>
