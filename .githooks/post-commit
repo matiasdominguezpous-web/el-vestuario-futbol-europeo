@@ -1,0 +1,10 @@
+#!/bin/sh
+
+branch=$(git branch --show-current 2>/dev/null)
+[ -n "$branch" ] || exit 0
+
+if ! git push origin "$branch"; then
+  echo "Aviso: el commit se creó, pero el push automático a origin falló." >&2
+fi
+
+exit 0
