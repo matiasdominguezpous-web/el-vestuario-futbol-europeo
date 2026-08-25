@@ -13,7 +13,7 @@ Directorio interactivo de los equipos y jugadores de diez grandes ligas europeas
 - Süper Lig
 - Scottish Premiership
 
-La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera, palmarés de jugadores y clubes, y las tablas actuales de las diez ligas.
+La aplicación incluye plantillas, edad, nacionalidad, dorsal, posición específica, valor de mercado, estadísticas acumuladas de carrera, palmarés de jugadores y clubes, las tablas actuales de las diez ligas y el top 5 de goleadores de cada competición.
 
 ## Uso local
 
@@ -40,7 +40,7 @@ Después visita `http://localhost:8080`.
     ├── enrich-data.mjs            # Valida planteles y añade datos Transfermarkt
     ├── club-titles.mjs            # Permite refrescar palmarés de clubes
     ├── career-stats.mjs           # Calcula estadísticas de carrera
-    └── fetch-standings.mjs        # Actualiza las clasificaciones
+    └── fetch-standings.mjs        # Actualiza clasificaciones y goleadores
 ```
 
 ## Actualización de datos
@@ -56,7 +56,7 @@ node work/fetch-standings.mjs
 
 Ejecuta los scripts en ese orden. Dorsales, edades, nacionalidades, posiciones, valores, estadísticas y palmarés de jugadores y clubes provienen de datos públicos de Transfermarkt. ESPN se utiliza únicamente como referencia inicial para el listado de competiciones y equipos antes del cruce con Transfermarkt.
 
-`enrich-data.mjs` contrasta cada club con el identificador actual de Transfermarkt y comprueba que todos los integrantes del plantel tengan un perfil válido antes de guardar los datos.
+`enrich-data.mjs` contrasta cada club con el identificador actual de Transfermarkt y comprueba que todos los integrantes del plantel tengan un perfil válido antes de guardar los datos. `fetch-standings.mjs` actualiza en la misma ejecución las clasificaciones y los cinco máximos goleadores disponibles de la temporada actual.
 
 ## Tecnologías
 

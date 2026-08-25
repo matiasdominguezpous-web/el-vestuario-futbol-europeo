@@ -4,6 +4,7 @@ import { dirname, resolve } from 'node:path';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const apiBase = 'https://tmapi.transfermarkt.technology';
+const websiteBase = 'https://www.transfermarkt.com';
 const competitions = [
   { id: 'eng.1', code: 'GB1', name: 'Premier League', flag: '🇬🇧' },
   { id: 'esp.1', code: 'ES1', name: 'LaLiga', flag: '🇪🇸' },
@@ -31,6 +32,70 @@ async function api(path, tries = 5) {
   throw new Error(`Transfermarkt API unavailable: ${path}`);
 }
 
+async function website(path, tries = 5) {
+  for (let attempt = 0; attempt < tries; attempt++) {
+    try {
+      const response = await fetch(`${websiteBase}/${path}`, {
+        headers: {
+          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+          'accept-language': 'en-US,en;q=0.9',
+        },
+        signal: AbortSignal.timeout(30_000),
+      });
+      const html = response.ok ? await response.text() : '';
+      if (html.includes('<table class="items">')) return html;
+    } catch {}
+    await sleep(300 * (attempt + 1));
+  }
+  throw new Error(`Transfermarkt website unavailable: ${path}`);
+}
+
+function decodeHtml(value = '') {
+  const named = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>', nbsp: ' ' };
+  return value.replace(/&(#x?[\da-f]+|[a-z]+);/gi, (entity, code) => {
+    if (code[0] !== '#') return named[code.toLowerCase()] ?? entity;
+    const hexadecimal = code[1]?.toLowerCase() === 'x';
+    const number = Number.parseInt(code.slice(hexadecimal ? 2 : 1), hexadecimal ? 16 : 10);
+    return Number.isFinite(number) ? String.fromCodePoint(number) : entity;
+  });
+}
+
+function parseTopScorers(html, competition) {
+  const tableStart = [...html.matchAll(/<table class="items">/g)]
+    .map(match => match.index)
+    .find(index => html.slice(index, html.indexOf('</thead>', index)).includes('icon-tor-table-header'));
+  if (tableStart == null) return [];
+  const tableEnd = html.indexOf('</tbody>', tableStart);
+  if (tableEnd < 0) throw new Error(`${competition.name}: missing goalscorer table`);
+
+  const rows = html.slice(tableStart, tableEnd).split(/<tr class="(?:odd|even)">/i).slice(1, 6);
+  const scorers = rows.map((row, index) => {
+    const rank = row.match(/^\s*<td class="zentriert">(\d+)<\/td>/i);
+    const player = row.match(/<a title="([^"]+)" href="([^"]+\/profil\/spieler\/(\d+))">/i);
+    const photo = row.match(/data-src="([^"]+)"[^>]+class="bilderrahmen-fixed/i)
+      || row.match(/<img src="([^"]+)"[^>]+class="bilderrahmen-fixed/i);
+    const club = row.match(/<a title="([^"]+)" href="[^"]*\/startseite\/verein\/(\d+)\/saison_id\/\d+"><img src="([^"]+)"/i);
+    const stats = [...row.matchAll(/href="[^"]*\/leistungsdaten\/spieler\/\d+\/saison\/\d+\/wettbewerb\/[A-Z0-9]+">(\d+)<\/a>/gi)];
+    if (!rank || !player || !photo || !club || stats.length < 2) {
+      throw new Error(`${competition.name}: invalid goalscorer row ${index + 1}`);
+    }
+    return {
+      rank: Number(rank[1]),
+      playerId: player[3],
+      name: decodeHtml(player[1]),
+      photo: decodeHtml(photo[1]),
+      profileUrl: `${websiteBase}${decodeHtml(player[2])}`,
+      clubId: club[2],
+      club: decodeHtml(club[1]),
+      clubLogo: decodeHtml(club[3]),
+      appearances: Number(stats[0][1]),
+      goals: Number(stats[1][1]),
+    };
+  });
+  if (!scorers.length || scorers.length > 5) throw new Error(`${competition.name}: invalid goalscorer count ${scorers.length}`);
+  return scorers;
+}
+
 async function pool(items, size, worker) {
   let cursor = 0;
   await Promise.all(Array.from({ length: size }, async () => {
@@ -47,6 +112,10 @@ await pool(competitions, 5, async competition => {
     api(`competition/${competition.code}`),
     api(`competition/${competition.code}/table`),
   ]);
+  const competitionSlug = info.relativeUrl?.split('/').filter(Boolean)[0];
+  if (!competitionSlug || !info.currentSeasonId) throw new Error(`${competition.name}: missing current season`);
+  const scorerHtml = await website(`${competitionSlug}/torschuetzenliste/wettbewerb/${competition.code}/saison_id/${info.currentSeasonId}`);
+  const topScorers = parseTopScorers(scorerHtml, competition);
   const entries = (table.tables || []).flatMap(section => section.clubs || []);
   const clubIds = [...new Set(entries.map(entry => String(entry.clubId)))];
   const query = clubIds.map(id => `ids%5B%5D=${encodeURIComponent(id)}`).join('&');
@@ -91,8 +160,9 @@ await pool(competitions, 5, async competition => {
     ...competition,
     season: info.currentSeason?.display || '26/27',
     rows,
+    topScorers,
   };
-  console.log(competition.name, rows.length, 'clubs');
+  console.log(competition.name, rows.length, 'clubs,', topScorers.length, 'goalscorers');
 });
 
 const payload = {
